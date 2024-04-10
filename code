@@ -1,0 +1,187 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+df = pd.read_stata(r"C:\Users\pacha\Downloads\ICPSR_36151-V6\ICPSR_36151\DS0002\36151-0002-Data.dta")
+
+df.dropna()
+
+#print(df['FM1'].value_counts())
+
+#print(df.describe)
+
+#print(df['CO1C'])
+
+x = [0, 5, 10,15,20,25,30,35,40,45,50,55,60,65,70,75,80]
+
+fig, ax = plt.subplots()
+
+
+price = pd.Series(df.loc[:,'CO1C']) #rice expenses
+
+cultivateyon = pd.Series(df.loc[:,'FM1']) #do they cultivate or own any land
+
+rationuse = pd.Series(df.loc[:,'RC1D'])
+
+notusing = pd.Series(df.loc[:,'RC1E'])
+
+noration = pd.Series(df.loc[:,'RC2'])
+
+#print(cultivateyon.describe()) #max are no, but nearly half distributed 23386 out of 42152
+
+#print(cultivateyon)
+
+hello = pd.DataFrame(data=[price, cultivateyon, rationuse, noration, notusing])
+
+#print(hello)
+
+landyon = []
+
+rationuse = []
+
+nora = []
+
+notuse = []
+
+for i in range(42151):
+    if hello.loc['CO1C',i ] == 0:
+        landyon.append(hello.loc['FM1',i])
+        rationuse.append(hello.loc['RC1D',i])
+        nora.append(hello.loc['RC2',i])
+        notuse.append(hello.loc['RC1E',i])
+
+
+
+
+landyon = pd.Series(landyon)
+
+rationuse = pd.Series(rationuse)
+
+nora = pd.Series(nora)
+
+notuse = pd.Series(notuse)
+
+#print(landyon.describe()) # here for those who procure rice at 0 cost 967 own land or cultivate while 846 do not
+
+                             # different policies for issue prices of different state governmnets
+
+nora = nora.dropna()
+
+#print(nora.value_counts()) #very few people said they did not need ration card (7 out of 172)
+
+                               # 114 people are being missed who are neither in using ration card in last 6 months nor in not having ration card
+
+#print(notuse.value_counts()) # around 100 houses not used ration card in last 6 months
+
+#print(rationuse.value_counts()) #so most spending zero money on rice use ration card
+
+print()
+price.to_numpy()
+
+#price.sort_values(inplace=True)  # we now have the prices arranged in the ascending order
+
+#print(price)
+
+#print(price.describe())
+
+price1 = price.astype(dtype=int)
+
+#print(price1.describe()) #no major change due to the changing of data type to int
+
+freq ={}
+
+price1.dropna()
+
+for i in price1:
+    if i in freq:
+        freq[i] = freq[i] + 1
+    else:
+        freq[i] = 1
+
+
+price1.sort_values(inplace=True)  # we now have the prices arranged in the ascending order
+
+print(freq)
+
+#print(price1.value_counts())
+
+y=[]
+
+
+# this method(below) is not right as on dropping duplicates in y we also eliminate the frequencies that were same but prices different.
+
+#for i in price1:
+
+ #   y.append(freq[i])
+
+#y = pd.DataFrame(y)
+
+#y = y.drop_duplicates()
+
+
+
+price1 = pd.DataFrame(price1)
+
+price1 = price1.drop_duplicates() # this will drop duplicate rows that not only have frequency same but also prices same
+
+
+price2 = price1.loc[:,'CO1C']
+
+
+#print(price2)
+
+x=[]
+
+for i in price2:
+
+    y.append(freq[i])
+    x.append(i)
+
+y = pd.DataFrame(y)
+
+cm = []
+
+k=0
+
+for i in range(66):
+    if i>0:
+        k = k+y.loc[i-1,0]
+        cm.append(k + y.loc[i,0])
+    else:
+        cm.append(y.loc[0,0])
+
+
+#print(y)
+#print(cm)
+#print(x)
+
+x = np.array(x)
+
+x = x*1.848*1.095 # adjusting 2010 prices to 2023 november levels for cereals
+
+y = pd.DataFrame(y)
+
+x = pd.DataFrame(x)
+
+cm = pd.DataFrame(cm)
+
+#print(cm)
+
+
+plt.plot(x,y)
+
+plt.plot(x,cm,scaley='linear')
+
+plt.yscale('symlog')
+
+plt.ylabel( "frequency")
+
+plt.xlabel("amount spent per month in 2023 prices")
+
+plt.yticks([0,1,100,1000,10000])
+
+plt.ylim(0,50000)
+
+#plt.title("year:2010")
+
+plt.show()
